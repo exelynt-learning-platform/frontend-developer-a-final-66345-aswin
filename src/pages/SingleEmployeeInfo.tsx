@@ -13,6 +13,7 @@ import MapOutlinedIcon from '@mui/icons-material/MapOutlined'
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
+import { DEFAULT_AVATAR } from "../constants/employeeConstants"
 
 const SingleEmployeeInfo = () => {
   const { id } = useParams()
@@ -37,11 +38,12 @@ const SingleEmployeeInfo = () => {
   if (!selectedEmployee) 
     return <EmptyState message="Employee not found" onRetry={handleRetry} />
 
-  const avatarUrl = (selectedEmployee as any).avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=240&q=80'
-
-  const districtOrCity = (selectedEmployee as any).district || selectedEmployee.city || 'N/A'
-  const emailDisplay = selectedEmployee.mail || (selectedEmployee as any).email || (selectedEmployee as any).emailId || 'N/A'
-  const mobileDisplay = selectedEmployee.ph_no || (selectedEmployee as any).mobile || 'N/A'
+  const avatarUrl = selectedEmployee.avatar || DEFAULT_AVATAR
+  const districtOrCity = selectedEmployee.city || 'N/A'
+  const emailDisplay = selectedEmployee.mail || 'N/A'
+  const mobileDisplay = selectedEmployee.ph_no || 'N/A'
+  const roleDisplay = selectedEmployee.role
+  const joinedDisplay = selectedEmployee.joinedDate || 'N/A'
 
   return (
     <div>
@@ -64,7 +66,7 @@ const SingleEmployeeInfo = () => {
           </div>
 
           <h3>{selectedEmployee.name}</h3>
-          <span className="ems-profile-role">Software Engineer</span>
+          {roleDisplay ? <span className="ems-profile-role">{roleDisplay}</span> : null}
           <span className="ems-status-badge">Active</span>
           <span className="ems-id-badge">ID: {selectedEmployee.id}</span>
         </div>
@@ -101,7 +103,7 @@ const SingleEmployeeInfo = () => {
               </div>
               <div className="ems-info-content">
                 <small>Country</small>
-                <strong>{selectedEmployee.country}</strong>
+                <strong>{selectedEmployee.country || 'N/A'}</strong>
               </div>
             </div>
 
@@ -111,7 +113,7 @@ const SingleEmployeeInfo = () => {
               </div>
               <div className="ems-info-content">
                 <small>State</small>
-                <strong>{selectedEmployee.state}</strong>
+                <strong>{selectedEmployee.state || 'N/A'}</strong>
               </div>
             </div>
 
@@ -120,7 +122,7 @@ const SingleEmployeeInfo = () => {
                 <LocationOnOutlinedIcon fontSize="small" />
               </div>
               <div className="ems-info-content">
-                <small>District</small>
+                <small>City / District</small>
                 <strong>{districtOrCity}</strong>
               </div>
             </div>
@@ -131,7 +133,7 @@ const SingleEmployeeInfo = () => {
               </div>
               <div className="ems-info-content">
                 <small>Joined Date</small>
-                <strong>Jan 15, 2024</strong>
+                <strong>{joinedDisplay}</strong>
               </div>
             </div>
           </div>

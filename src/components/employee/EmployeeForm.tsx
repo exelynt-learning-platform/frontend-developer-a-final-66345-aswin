@@ -32,11 +32,11 @@ const EmployeeForm = () => {
         if (id && selectedEmployee) {
             reset({
                 name: selectedEmployee.name,
-                mail: selectedEmployee.mail || (selectedEmployee as any).email || (selectedEmployee as any).emailId || '',
-                ph_no: selectedEmployee.ph_no || (selectedEmployee as any).mobile || '',
+                mail: selectedEmployee.mail,
+                ph_no: selectedEmployee.ph_no,
                 country: selectedEmployee.country,
                 state: selectedEmployee.state,
-                city: selectedEmployee.city || (selectedEmployee as any).district || ''
+                city: selectedEmployee.city
             })
         }
     }, [id, selectedEmployee, reset])

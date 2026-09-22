@@ -5,8 +5,12 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import EmployeeForm from '../../components/employee/EmployeeForm'
 import type { employee } from '../../types/employee'
 
-const createMockThunkPromise = (data: any) => {
-  const promise = Promise.resolve(data) as any
+interface MockThunkPromise<T> extends Promise<T> {
+  unwrap: () => Promise<T>
+}
+
+const createMockThunkPromise = <T,>(data: T): MockThunkPromise<T> => {
+  const promise = Promise.resolve(data) as MockThunkPromise<T>
   promise.unwrap = () => Promise.resolve(data)
   return promise
 }

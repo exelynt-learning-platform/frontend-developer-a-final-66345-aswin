@@ -54,7 +54,7 @@ const Dashboard = () => {
   const totalStatesCount = uniqueStates
 
   const uniqueDistricts = useMemo(() => {
-    return new Set(employees.map(e => ((e as any).district || e.city)?.trim()).filter(Boolean)).size
+    return new Set(employees.map(e => e.city?.trim()).filter(Boolean)).size
   }, [employees])
   const totalDistrictsCount = uniqueDistricts
 
@@ -103,7 +103,7 @@ const Dashboard = () => {
     <div>
       <div className="ems-page-header">
         <div className="ems-page-title">
-          <h1>{getGreeting()}, Aswin Babu! 👋</h1>
+          <h1>{getGreeting()}, Admin! 👋</h1>
           <p>Here's what's happening with your team today.</p>
         </div>
         <div className="ems-date-chip">

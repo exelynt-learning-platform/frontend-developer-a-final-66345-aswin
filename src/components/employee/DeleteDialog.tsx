@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined'
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 
@@ -9,9 +10,41 @@ interface DeleteDialogProps {
 }
 
 const DeleteDialog = ({ empId, empName, onClose, onConfirm }: DeleteDialogProps) => {
+    const cancelButtonRef = useRef<HTMLButtonElement>(null)
+    const dialogRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        cancelButtonRef.current?.focus()
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose()
+            }
+            if (e.key === 'Tab' && dialogRef.current) {
+                const focusableElements = dialogRef.current.querySelectorAll<HTMLElement>(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                )
+                if (focusableElements.length === 0) return
+
+                const firstElement = focusableElements[0]
+                const lastElement = focusableElements[focusableElements.length - 1]
+
+                if (e.shiftKey && document.activeElement === firstElement) {
+                    e.preventDefault()
+                    lastElement.focus()
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                    e.preventDefault()
+                    firstElement.focus()
+                }
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [onClose])
+
     return (
         <div 
-            tabIndex={-1} 
             style={{ 
                 position: 'fixed',
                 top: 0,
@@ -29,6 +62,10 @@ const DeleteDialog = ({ empId, empName, onClose, onConfirm }: DeleteDialogProps)
             onClick={onClose}
         >
             <div 
+                ref={dialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="delete-dialog-title"
                 className="ems-card" 
                 style={{ 
                     maxWidth: '440px', 
@@ -67,13 +104,14 @@ const DeleteDialog = ({ empId, empName, onClose, onConfirm }: DeleteDialogProps)
                     </button>
                 </div>
 
-                <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '8px' }}>Delete Employee</h3>
+                <h3 id="delete-dialog-title" style={{ fontSize: '18px', fontWeight: 800, marginBottom: '8px' }}>Delete Employee</h3>
                 <p style={{ fontSize: '14px', color: '#52525b', marginBottom: '24px', lineHeight: 1.5 }}>
                     Are you sure you want to delete <strong>{empName}</strong>? This action cannot be undone and will remove the employee record.
                 </p>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                     <button 
+                        ref={cancelButtonRef}
                         type="button" 
                         className="ems-btn ems-btn-outline" 
                         onClick={onClose}

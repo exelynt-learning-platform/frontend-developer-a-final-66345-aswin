@@ -43,10 +43,10 @@ export const updateEmployees = createAsyncThunk<employee, { id: string, data: em
     }
 })
 
-export const deleteEmployees = createAsyncThunk<employee, string, { rejectValue: string }>('employees/deleteEmployee', async (id, { rejectWithValue }) => {
+export const deleteEmployees = createAsyncThunk<string, string, { rejectValue: string }>('employees/deleteEmployee', async (id, { rejectWithValue }) => {
     try {
-        const removeEmployee = await deleteEmployee(id)
-        return (removeEmployee && removeEmployee.id) ? removeEmployee : ({ id, ...(removeEmployee || {}) } as employee)
+        await deleteEmployee(id)
+        return id
     }
     catch {
         return rejectWithValue(ERROR_MESSAGE.Employee.DELETE_FAILED)

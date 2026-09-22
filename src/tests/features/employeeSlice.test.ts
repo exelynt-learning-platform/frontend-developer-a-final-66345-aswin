@@ -172,7 +172,7 @@ describe('employeeSlice', () => {
     const state = employeeReducer(
       initialState,
       deleteEmployees.fulfilled(
-        employee1,
+        '1',
         'request-id',
         '1'
       )
@@ -241,6 +241,94 @@ describe('employeeSlice', () => {
     )
 
     expect(state.searchResult).toBeNull()
+  })
+
+  it('should handle fetchEmployeeById.pending', () => {
+    const state = employeeReducer(
+      undefined,
+      fetchEmployeeById.pending('request-id', '1')
+    )
+    expect(state.loading).toBe(true)
+    expect(state.error).toBeNull()
+    expect(state.searchResult).toBeNull()
+  })
+
+  it('should handle fetchEmployeeById.rejected', () => {
+    const state = employeeReducer(
+      undefined,
+      fetchEmployeeById.rejected(new Error('Failed'), 'request-id', '1', 'Failed to fetch employee')
+    )
+    expect(state.loading).toBe(false)
+    expect(state.selectedEmployee).toBeNull()
+    expect(state.error).toBe('Failed to fetch employee')
+  })
+
+  it('should handle createEmployees.pending', () => {
+    const state = employeeReducer(
+      undefined,
+      createEmployees.pending('request-id', {
+        name: 'Test',
+        mail: 'test@example.com',
+        ph_no: '1234567890',
+        country: 'India',
+        state: 'TN',
+        city: 'Chennai'
+      })
+    )
+    expect(state.loading).toBe(true)
+    expect(state.error).toBeNull()
+  })
+
+  it('should handle createEmployees.rejected', () => {
+    const state = employeeReducer(
+      undefined,
+      createEmployees.rejected(new Error('Failed'), 'request-id', {
+        name: 'Test',
+        mail: 'test@example.com',
+        ph_no: '1234567890',
+        country: 'India',
+        state: 'TN',
+        city: 'Chennai'
+      }, 'Failed to create employee')
+    )
+    expect(state.loading).toBe(false)
+    expect(state.error).toBe('Failed to create employee')
+  })
+
+  it('should handle updateEmployees.pending', () => {
+    const state = employeeReducer(
+      undefined,
+      updateEmployees.pending('request-id', { id: '1', data: { name: 'Test', mail: 't@e.com', ph_no: '1234567890', country: 'IN', state: 'TN', city: 'CH' } })
+    )
+    expect(state.loading).toBe(true)
+    expect(state.error).toBeNull()
+  })
+
+  it('should handle updateEmployees.rejected', () => {
+    const state = employeeReducer(
+      undefined,
+      updateEmployees.rejected(new Error('Failed'), 'request-id', { id: '1', data: { name: 'Test', mail: 't@e.com', ph_no: '1234567890', country: 'IN', state: 'TN', city: 'CH' } }, 'Failed to update employee')
+    )
+    expect(state.loading).toBe(false)
+    expect(state.error).toBe('Failed to update employee')
+  })
+
+  it('should handle deleteEmployees.pending', () => {
+    const state = employeeReducer(
+      undefined,
+      deleteEmployees.pending('request-id', '1')
+    )
+    expect(state.loading).toBe(true)
+    expect(state.error).toBeNull()
+  })
+
+  it('should handle deleteEmployees.rejected', () => {
+    const state = employeeReducer(
+      undefined,
+      deleteEmployees.rejected(new Error('Failed'), 'request-id', '1', 'Failed to delete employee')
+    )
+    expect(state.loading).toBe(false)
+    expect(state.error).toBe('Failed to delete employee')
   })
 
 })

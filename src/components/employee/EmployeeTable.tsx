@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
 import { deleteEmployees, fetchEmployees } from '../../features/employees/employeeService'
@@ -10,34 +10,7 @@ import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined'
 import DeleteDialog from './DeleteDialog'
-
-const getCountryFlag = (countryName: string = '') => {
-    const name = countryName.toLowerCase().trim()
-    if (name.includes('india')) return '🇮🇳'
-    if (name.includes('usa') || name.includes('united states') || name.includes('america')) return '🇺🇸'
-    if (name.includes('canada')) return '🇨🇦'
-    if (name.includes('uk') || name.includes('united kingdom') || name.includes('britain')) return '🇬🇧'
-    if (name.includes('germany')) return '🇩🇪'
-    if (name.includes('australia')) return '🇦🇺'
-    if (name.includes('france')) return '🇫🇷'
-    if (name.includes('japan')) return '🇯🇵'
-    if (name.includes('singapore')) return '🇸🇬'
-    return '🌐'
-}
-
-const getAvatarUrl = (id: string, index: number) => {
-    const avatars = [
-        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
-        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
-        'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&q=80',
-        'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=120&q=80',
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
-        'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&q=80',
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'
-    ]
-    const num = parseInt(id, 10)
-    return isNaN(num) ? avatars[index % avatars.length] : avatars[num % avatars.length]
-}
+import { DEFAULT_PAGE_SIZE, getAvatarUrl, getCountryFlag } from '../../constants/employeeConstants'
 
 const EmployeeTable = () => {
     const navigate = useNavigate()
@@ -51,7 +24,7 @@ const EmployeeTable = () => {
     const [selectedIds, setSelectedIds] = useState<string[]>([])
     const [currentPage, setCurrentPage] = useState(1)
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
-    const itemsPerPage = 5
+    const itemsPerPage = DEFAULT_PAGE_SIZE
 
     const handleDel = (id: string, name: string) => {
         setDeleteTarget({ id, name })
@@ -92,8 +65,15 @@ const EmployeeTable = () => {
     const startIndex = (safeCurrentPage - 1) * itemsPerPage
     const displayedEmployees = filteredEmployees.slice(startIndex, startIndex + itemsPerPage)
 
+    const allSelected = displayedEmployees.length > 0 && displayedEmployees.every(e => selectedIds.includes(e.id))
+
+    // Reset selection when search, country filter, or page changes
+    useEffect(() => {
+        setSelectedIds([])
+    }, [searchTerm, selectedCountry, safeCurrentPage])
+
     const toggleSelectAll = () => {
-        if (selectedIds.length === displayedEmployees.length) {
+        if (allSelected) {
             setSelectedIds([])
         } else {
             setSelectedIds(displayedEmployees.map(e => e.id))
@@ -144,7 +124,7 @@ const EmployeeTable = () => {
                         <thead>
                             <tr>
                                 <th style={{ width: '40px' }}>
-                                    <input type="checkbox" className="ems-checkbox" aria-label="Select all employees" checked={displayedEmployees.length > 0 && selectedIds.length === displayedEmployees.length} onChange={toggleSelectAll} />
+                                    <input type="checkbox" className="ems-checkbox" aria-label="Select all employees" checked={allSelected} onChange={toggleSelectAll} />
                                 </th>
                                 <th style={{ width: '60px' }}>ID</th>
                                 <th>Name</th>
@@ -165,10 +145,10 @@ const EmployeeTable = () => {
                                 ) : (
                                     displayedEmployees.map((emp, index) => {
                                         const isSelected = selectedIds.includes(emp.id)
-                                        const avatarSrc = (emp as any).avatar || getAvatarUrl(emp.id, index)
+                                        const avatarSrc = emp.avatar || getAvatarUrl(emp.id, index)
                                         const flag = getCountryFlag(emp.country)
-                                        const emailDisplay = emp.mail || (emp as any).email || (emp as any).emailId || '-'
-                                        const mobileDisplay = emp.ph_no || (emp as any).mobile || '-'
+                                        const emailDisplay = emp.mail || '-'
+                                        const mobileDisplay = emp.ph_no || '-'
 
                                         return (
                                             <tr key={emp.id} style={{ backgroundColor: isSelected ? '#faf9f3' : undefined }}>

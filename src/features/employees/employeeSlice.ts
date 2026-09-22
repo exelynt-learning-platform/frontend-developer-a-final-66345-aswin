@@ -109,7 +109,7 @@ const employeeSlice = createSlice({
 
         build.addCase(deleteEmployees.fulfilled, (state, action) => {
             state.loading = false
-            const targetId = action.payload?.id ?? (action as any).meta?.arg ?? action.payload
+            const targetId = action.meta.arg
             state.employees = state.employees.filter(emp => String(emp.id) !== String(targetId))
         })
 

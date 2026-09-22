@@ -135,7 +135,7 @@ const SearchEmployee = () => {
                     <td>{searchResult.ph_no}</td>
                     <td>{searchResult.country}</td>
                     <td>{searchResult.state}</td>
-                    <td>{searchResult.city || (searchResult as any).district || 'N/A'}</td>
+                    <td>{searchResult.city || 'N/A'}</td>
                     <td style={{ textAlign: 'center' }}>
                       <div style={{ display: 'inline-flex', gap: '8px' }}>
                         <button type="button" className="ems-action-btn" onClick={() => navigate(`/employees/${searchResult.id}`)} aria-label="View Details"><VisibilityOutlinedIcon sx={{ fontSize: 18 }} /></button>

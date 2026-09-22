@@ -53,10 +53,10 @@ const Sidebar = () => {
 
       <div className="ems-sidebar-bottom">
         <div className="ems-user-avatar">
-          <span>AB</span>
+          <span>AD</span>
         </div>
         <div className="ems-user-info">
-          <strong>Aswin Babu</strong>
+          <strong>Administrator</strong>
           <small>Admin</small>
         </div>
       </div>
