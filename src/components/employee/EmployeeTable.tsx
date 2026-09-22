@@ -9,6 +9,7 @@ import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined'
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined'
+import DeleteDialog from './DeleteDialog'
 
 const getCountryFlag = (countryName: string = '') => {
     const name = countryName.toLowerCase().trim()
@@ -49,13 +50,20 @@ const EmployeeTable = () => {
     const [selectedCountry, setSelectedCountry] = useState('All')
     const [selectedIds, setSelectedIds] = useState<string[]>([])
     const [currentPage, setCurrentPage] = useState(1)
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
     const itemsPerPage = 5
 
-    const handleDel = (id: string) => {
-        const confirm = window.confirm('are you sure to delete this employee')
-        if (confirm) {
-            appDispatch(deleteEmployees(id))
-        }
+    const handleDel = (id: string, name: string) => {
+        setDeleteTarget({ id, name })
+    }
+
+    const handleConfirmDelete = (id: string) => {
+        appDispatch(deleteEmployees(id))
+        setDeleteTarget(null)
+    }
+
+    const handleCloseDelete = () => {
+        setDeleteTarget(null)
     }
 
     const handleRetry = () => {
@@ -194,7 +202,7 @@ const EmployeeTable = () => {
                                                             <EditOutlinedIcon sx={{ fontSize: 18 }} />
                                                             <span style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>Edit</span>
                                                         </button>
-                                                        <button type="button" className="ems-action-btn delete" onClick={() => handleDel(emp.id)} aria-label="Delete">
+                                                        <button type="button" className="ems-action-btn delete" onClick={() => handleDel(emp.id, emp.name)} aria-label="Delete">
                                                             <DeleteOutlineOutlinedIcon sx={{ fontSize: 18 }} />
                                                             <span style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>Delete</span>
                                                         </button>
@@ -225,6 +233,15 @@ const EmployeeTable = () => {
                     </div>
                 </div>
             </div>
+
+            {deleteTarget && (
+                <DeleteDialog
+                    empId={deleteTarget.id}
+                    empName={deleteTarget.name}
+                    onClose={handleCloseDelete}
+                    onConfirm={handleConfirmDelete}
+                />
+            )}
         </div>
     )
 }

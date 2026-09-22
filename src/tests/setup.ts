@@ -3,7 +3,7 @@ import { afterAll, afterEach, beforeAll } from 'vitest'
 import { server } from './mocks/server'
 
 beforeAll(() => {
-    server.listen()
+    server.listen({ onUnhandledRequest: 'bypass' })
 })
 
 afterEach(() => {

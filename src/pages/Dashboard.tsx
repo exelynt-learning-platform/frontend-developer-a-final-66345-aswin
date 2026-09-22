@@ -42,22 +42,62 @@ const Dashboard = () => {
     appDispatch(fetchCountry())
   }
 
+  const totalEmployeesCount = employees.length
+  const totalCountriesCount = useMemo(() => {
+    const activeCountries = new Set(employees.map(e => e.country?.trim()).filter(Boolean)).size
+    return activeCountries || country.length
+  }, [employees, country])
+
+  const uniqueStates = useMemo(() => {
+    return new Set(employees.map(e => e.state?.trim()).filter(Boolean)).size
+  }, [employees])
+  const totalStatesCount = uniqueStates
+
+  const uniqueDistricts = useMemo(() => {
+    return new Set(employees.map(e => ((e as any).district || e.city)?.trim()).filter(Boolean)).size
+  }, [employees])
+  const totalDistrictsCount = uniqueDistricts
+
+  const sliceColors = ['#3b82f6', '#06b6d4', '#eab308', '#ef4444', '#8b5cf6', '#3f3f46']
+  const countryBreakdown = useMemo(() => {
+    if (employees.length === 0) return []
+    const counts: Record<string, number> = {}
+    employees.forEach(emp => {
+      const c = emp.country?.trim() || 'Other'
+      counts[c] = (counts[c] || 0) + 1
+    })
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1])
+    if (sorted.length <= 5) {
+      return sorted.map(([name, count]) => ({ name, count }))
+    }
+    const top4 = sorted.slice(0, 4).map(([name, count]) => ({ name, count }))
+    const othersCount = sorted.slice(4).reduce((acc, curr) => acc + curr[1], 0)
+    return [...top4, { name: 'Others', count: othersCount }]
+  }, [employees])
+
+  const circumference = 2 * Math.PI * 38
+  let cumulativeOffset = 0
+  const donutSlices = countryBreakdown.map((item, idx) => {
+    const fraction = totalEmployeesCount > 0 ? item.count / totalEmployeesCount : 0
+    const dashLength = fraction * circumference
+    const slice = {
+      name: item.name,
+      count: item.count,
+      color: sliceColors[idx % sliceColors.length],
+      strokeDasharray: `${dashLength.toFixed(1)} ${(circumference - dashLength).toFixed(1)}`,
+      strokeDashoffset: -cumulativeOffset
+    }
+    cumulativeOffset += dashLength
+    return slice
+  })
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const barHeights = [25, 40, 35, 50, 45, 60, 55, 70, 85, 75, 80, 90]
+
   if (loading)
     return <Loader />
   if (error)
     return <ErrorMessage message={error} onRetry={handleRetry} />
-
-  const totalEmployeesCount = employees.length > 0 ? employees.length : 24
-  const totalCountriesCount = country.length > 0 ? country.length : 5
-
-  const uniqueStates = new Set(employees.map(e => e.state).filter(Boolean)).size
-  const totalStatesCount = uniqueStates > 0 ? Math.max(uniqueStates, 12) : 12
-
-  const uniqueDistricts = new Set(employees.map(e => (e as any).district || e.city).filter(Boolean)).size
-  const totalDistrictsCount = uniqueDistricts > 0 ? Math.max(uniqueDistricts, 28) : 28
-
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const barHeights = [42, 60, 50, 75, 48, 64, 52, 70, 88, 76, 82, 92]
 
   return (
     <div>
@@ -81,9 +121,9 @@ const Dashboard = () => {
             <span className="ems-stat-title">Total Employees</span>
             <div className="ems-stat-value-row">
               <span className="ems-stat-value">{totalEmployeesCount}</span>
-              <span className="ems-stat-trend">+12%</span>
+              <span className="ems-stat-trend">Active</span>
             </div>
-            <span className="ems-stat-subtext">+3 from last month</span>
+            <span className="ems-stat-subtext">Registered in directory</span>
           </div>
         </div>
 
@@ -95,9 +135,9 @@ const Dashboard = () => {
             <span className="ems-stat-title">Countries</span>
             <div className="ems-stat-value-row">
               <span className="ems-stat-value">{totalCountriesCount}</span>
-              <span className="ems-stat-trend">+25%</span>
+              <span className="ems-stat-trend">Global</span>
             </div>
-            <span className="ems-stat-subtext">+1 from last month</span>
+            <span className="ems-stat-subtext">Active regions</span>
           </div>
         </div>
 
@@ -109,9 +149,9 @@ const Dashboard = () => {
             <span className="ems-stat-title">States</span>
             <div className="ems-stat-value-row">
               <span className="ems-stat-value">{totalStatesCount}</span>
-              <span className="ems-stat-trend">+20%</span>
+              <span className="ems-stat-trend">Regional</span>
             </div>
-            <span className="ems-stat-subtext">+2 from last month</span>
+            <span className="ems-stat-subtext">Across territories</span>
           </div>
         </div>
 
@@ -123,9 +163,9 @@ const Dashboard = () => {
             <span className="ems-stat-title">Districts</span>
             <div className="ems-stat-value-row">
               <span className="ems-stat-value">{totalDistrictsCount}</span>
-              <span className="ems-stat-trend">+17%</span>
+              <span className="ems-stat-trend">Local</span>
             </div>
-            <span className="ems-stat-subtext">+4 from last month</span>
+            <span className="ems-stat-subtext">Cities &amp; districts</span>
           </div>
         </div>
       </div>
@@ -145,7 +185,7 @@ const Dashboard = () => {
                     {
                       isActive && (
                         <div className="tooltip-bubble">
-                          {idx === currentMonthIndex ? `${totalEmployeesCount} Employees` : `${Math.round(totalEmployeesCount * (heightPct / 100))} Employees`}
+                          {idx === currentMonthIndex ? `${totalEmployeesCount} Employees (Current)` : `${totalEmployeesCount > 0 ? Math.max(1, Math.round(totalEmployeesCount * (heightPct / 100))) : 0} Employees`}
                         </div>
                       )
                     }
@@ -161,46 +201,23 @@ const Dashboard = () => {
         <div className="ems-chart-card">
           <div className="ems-chart-header">
             <h3>Employees by Country</h3>
-            <select className="ems-chart-select" defaultValue="this-month">
-              <option value="this-month">This Month</option>
-              <option value="last-month">Last Month</option>
-              <option value="this-year">This Year</option>
-            </select>
           </div>
 
           <div className="ems-donut-wrapper">
             <div className="ems-donut-visual">
               <svg width="140" height="140" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="38" fill="transparent" stroke="#f4f3ee" strokeWidth="11" />
-                <circle
-                  cx="50" cy="50" r="38" fill="transparent"
-                  stroke="#3b82f6" strokeWidth="11"
-                  strokeDasharray="98 238" strokeDashoffset="0"
-                />
-
-                <circle
-                  cx="50" cy="50" r="38" fill="transparent"
-                  stroke="#06b6d4" strokeWidth="11"
-                  strokeDasharray="50 238" strokeDashoffset="-98"
-                />
-
-                <circle
-                  cx="50" cy="50" r="38" fill="transparent"
-                  stroke="#eab308" strokeWidth="11"
-                  strokeDasharray="40 238" strokeDashoffset="-148"
-                />
-
-                <circle
-                  cx="50" cy="50" r="38" fill="transparent"
-                  stroke="#ef4444" strokeWidth="11"
-                  strokeDasharray="30 238" strokeDashoffset="-188"
-                />
-
-                <circle
-                  cx="50" cy="50" r="38" fill="transparent"
-                  stroke="#3f3f46" strokeWidth="11"
-                  strokeDasharray="20 238" strokeDashoffset="-218"
-                />
+                {
+                  donutSlices.map((slice) => (
+                    <circle
+                      key={slice.name}
+                      cx="50" cy="50" r="38" fill="transparent"
+                      stroke={slice.color} strokeWidth="11"
+                      strokeDasharray={slice.strokeDasharray}
+                      strokeDashoffset={slice.strokeDashoffset}
+                    />
+                  ))
+                }
               </svg>
               <div className="ems-donut-center">
                 <strong>{totalEmployeesCount}</strong>
@@ -209,41 +226,21 @@ const Dashboard = () => {
             </div>
 
             <div className="ems-donut-legend">
-              <div className="ems-legend-item">
-                <span className="ems-legend-name">
-                  <span className="ems-legend-dot" style={{ backgroundColor: '#3b82f6' }}></span>
-                  India
-                </span>
-                <span className="ems-legend-count">10</span>
-              </div>
-              <div className="ems-legend-item">
-                <span className="ems-legend-name">
-                  <span className="ems-legend-dot" style={{ backgroundColor: '#06b6d4' }}></span>
-                  USA
-                </span>
-                <span className="ems-legend-count">5</span>
-              </div>
-              <div className="ems-legend-item">
-                <span className="ems-legend-name">
-                  <span className="ems-legend-dot" style={{ backgroundColor: '#eab308' }}></span>
-                  Canada
-                </span>
-                <span className="ems-legend-count">4</span>
-              </div>
-              <div className="ems-legend-item">
-                <span className="ems-legend-name">
-                  <span className="ems-legend-dot" style={{ backgroundColor: '#ef4444' }}></span>
-                  UK
-                </span>
-                <span className="ems-legend-count">3</span>
-              </div>
-              <div className="ems-legend-item">
-                <span className="ems-legend-name">
-                  <span className="ems-legend-dot" style={{ backgroundColor: '#3f3f46' }}></span>
-                  Others
-                </span>
-                <span className="ems-legend-count">2</span>
-              </div>
+              {
+                donutSlices.length === 0 ? (
+                  <span style={{ color: '#71717a', fontSize: '13px', padding: '16px 0' }}>No employee records found</span>
+                ) : (
+                  donutSlices.map((slice) => (
+                    <div key={slice.name} className="ems-legend-item">
+                      <span className="ems-legend-name">
+                        <span className="ems-legend-dot" style={{ backgroundColor: slice.color }}></span>
+                        {slice.name}
+                      </span>
+                      <span className="ems-legend-count">{slice.count}</span>
+                    </div>
+                  ))
+                )
+              }
             </div>
           </div>
         </div>

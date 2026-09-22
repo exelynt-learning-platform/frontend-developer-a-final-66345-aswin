@@ -5,8 +5,14 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import EmployeeForm from '../../components/employee/EmployeeForm'
 import type { employee } from '../../types/employee'
 
+const createMockThunkPromise = (data: any) => {
+  const promise = Promise.resolve(data) as any
+  promise.unwrap = () => Promise.resolve(data)
+  return promise
+}
+
 const mockDispatch = vi.fn(() =>
-  Promise.resolve({
+  createMockThunkPromise({
     type: 'employee/createEmployee/fulfilled'
   })
 )
@@ -102,15 +108,15 @@ describe('EmployeeForm validation', () => {
     await user.click(submitButton)
 
     expect(
-      screen.getByText('name must be important')
+      screen.getByText('Name is required')
     ).toBeInTheDocument()
 
     expect(
-      screen.getByText('Mail is must buddy')
+      screen.getByText('Email is required')
     ).toBeInTheDocument()
 
     expect(
-      screen.getByText('Mobile number is must be important')
+      screen.getByText('Mobile number is required')
     ).toBeInTheDocument()
 
     expect(
@@ -156,7 +162,7 @@ describe('EmployeeForm validation', () => {
       message appears.
     */
     expect(
-      screen.getByText('Enter a valid email')
+      screen.getByText('Please enter a valid email address')
     ).toBeInTheDocument()
   })
 
@@ -261,11 +267,11 @@ describe('EmployeeForm validation', () => {
       messages should not be displayed.
     */
     expect(
-      screen.queryByText('name must be important')
+      screen.queryByText('Name is required')
     ).not.toBeInTheDocument()
 
     expect(
-      screen.queryByText('Enter a valid email')
+      screen.queryByText('Please enter a valid email address')
     ).not.toBeInTheDocument()
 
     expect(

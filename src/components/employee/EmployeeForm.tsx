@@ -41,11 +41,17 @@ const EmployeeForm = () => {
         }
     }, [id, selectedEmployee, reset])
 
-    const onPlace = (data: emp_formData) => {
-        if (id)
-            appDispatch(updateEmployees({ id, data })).then(() => { navigate("/employees") })
-        else
-            appDispatch(createEmployees(data)).then(() => { navigate("/employees") })
+    const onPlace = async (data: emp_formData) => {
+        try {
+            if (id) {
+                await appDispatch(updateEmployees({ id, data })).unwrap()
+            } else {
+                await appDispatch(createEmployees(data)).unwrap()
+            }
+            navigate("/employees")
+        } catch {
+
+        }
     }
 
     const handleRetry = () => {
@@ -86,10 +92,10 @@ const EmployeeForm = () => {
                                 <input type="text" className={`ems-input ${errors.name ? 'is-invalid' : ''}`} placeholder="Enter the employee name"
                                     {
                                     ...register("name", {
-                                        required: "name must be important",
+                                        required: "Name is required",
                                         minLength: {
                                             value: 3,
-                                            message: "Name must be atleast 3 characters are allowed"
+                                            message: "Name must be at least 3 characters"
                                         },
                                         maxLength: {
                                             value: 35,
@@ -109,10 +115,10 @@ const EmployeeForm = () => {
                                 <input type="text" className={`ems-input ${errors.mail ? 'is-invalid' : ''}`} placeholder="Enter the employee mail"
                                     {
                                     ...register("mail", {
-                                        required: "Mail is must buddy",
+                                        required: "Email is required",
                                         pattern: {
                                             value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                            message: "Enter a valid email"
+                                            message: "Please enter a valid email address"
                                         }
                                     })
                                     } />
@@ -128,7 +134,7 @@ const EmployeeForm = () => {
                                 <input type="text" className={`ems-input ${errors.ph_no ? 'is-invalid' : ''}`} placeholder="Enter the employee mobile"
                                     {
                                     ...register("ph_no", {
-                                        required: "Mobile number is must be important",
+                                        required: "Mobile number is required",
                                         minLength: {
                                             value: 10,
                                             message: "Mobile must be 10 digits"

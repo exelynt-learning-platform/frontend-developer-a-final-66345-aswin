@@ -30,7 +30,7 @@ const EmployeeList = () => {
     if(error)
         return <ErrorMessage message={error} onRetry={handleRetry}/>
 
-    if(selectedEmployee?.id === null)
+    if(!selectedEmployee)
         return <EmptyState message='Employee not found' onRetry={handleRetry} />
     
     return (
@@ -38,27 +38,30 @@ const EmployeeList = () => {
             <table className="table table-hover align-middle">
                 <thead>
                     <tr>
-                        <td>ID</td>
-                        <td>Name</td>
-                        <td>Mail</td>
-                        <td>Phone Number</td>
-                        <td>Country</td>
-                        <td>State</td>
-                        <td>City</td>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Mail</th>
+                        <th>Phone Number</th>
+                        <th>Country</th>
+                        <th>State</th>
+                        <th>City</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <td>{selectedEmployee?.id}</td>
-                    <td>{selectedEmployee?.name}</td>
-                    <td>{selectedEmployee?.mail}</td>
-                    <td>{selectedEmployee?.ph_no}</td>
-                    <td>{selectedEmployee?.country}</td>
-                    <td>{selectedEmployee?.state}</td>
-                    <td>{selectedEmployee?.city}</td>
-                    <td>
-                        <button className='btn btn-sm btn-primary me-2' onClick={() => navigate(`/employees/edit/${id}`)}>Edit</button>
-                        <button className='btn btn-sm btn-secondary' onClick={() => navigate('/employees')}>Back</button>
-                    </td>
+                    <tr>
+                        <td>{selectedEmployee?.id}</td>
+                        <td>{selectedEmployee?.name}</td>
+                        <td>{selectedEmployee?.mail}</td>
+                        <td>{selectedEmployee?.ph_no}</td>
+                        <td>{selectedEmployee?.country}</td>
+                        <td>{selectedEmployee?.state}</td>
+                        <td>{selectedEmployee?.city}</td>
+                        <td>
+                            <button className='btn btn-sm btn-primary me-2' onClick={() => navigate(`/employees/edit/${id}`)}>Edit</button>
+                            <button className='btn btn-sm btn-secondary' onClick={() => navigate('/employees')}>Back</button>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>

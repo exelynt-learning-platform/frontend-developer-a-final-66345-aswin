@@ -48,6 +48,7 @@ vi.mock('../../app/hooks', () => ({
   useAppSelector: (selector: any) =>
     selector({
       emp: mockEmployeeState,
+      country: { country: [] },
     }),
 }))
 
@@ -201,10 +202,8 @@ describe('EmployeeTable', () => {
     expect(editButtons[0]).toBeInTheDocument()
   })
 
-  it('should delete employee after confirmation', async () => {
+  it('should delete employee after confirmation in DeleteDialog', async () => {
     const user = userEvent.setup()
-
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
 
     render(
       <MemoryRouter>
@@ -218,9 +217,13 @@ describe('EmployeeTable', () => {
 
     await user.click(deleteButtons[0])
 
-    expect(window.confirm).toHaveBeenCalledWith(
-      'are you sure to delete this employee'
-    )
+    expect(screen.getByText('Delete Employee')).toBeInTheDocument()
+
+    const dialogDeleteButtons = screen.getAllByRole('button', {
+      name: 'Delete',
+    })
+    // Confirmation button in DeleteDialog
+    await user.click(dialogDeleteButtons[dialogDeleteButtons.length - 1])
 
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'employee/deleteEmployee',
@@ -228,10 +231,8 @@ describe('EmployeeTable', () => {
     })
   })
 
-  it('should not delete employee when confirmation is cancelled', async () => {
+  it('should not delete employee when confirmation is cancelled in DeleteDialog', async () => {
     const user = userEvent.setup()
-
-    vi.spyOn(window, 'confirm').mockReturnValue(false)
 
     render(
       <MemoryRouter>
@@ -245,9 +246,14 @@ describe('EmployeeTable', () => {
 
     await user.click(deleteButtons[0])
 
-    expect(window.confirm).toHaveBeenCalled()
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' })
+    await user.click(cancelButton)
 
-    expect(mockDispatch).not.toHaveBeenCalled()
+    expect(mockDispatch).not.toHaveBeenCalledWith({
+      type: 'employee/deleteEmployee',
+      payload: '1',
+    })
+    expect(screen.queryByText('Delete Employee')).not.toBeInTheDocument()
   })
 
 })

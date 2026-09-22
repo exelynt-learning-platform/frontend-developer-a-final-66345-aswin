@@ -39,6 +39,7 @@ vi.mock("../../app/hooks", () => ({
     useAppSelector: (selector: any) =>
         selector({
             emp: mockEmployeeState,
+            country: { country: [] },
         }),
 }))
 
@@ -62,8 +63,6 @@ describe("EmployeeTable Delete", () => {
             loading: false,
             error: null,
         }
-
-        vi.spyOn(window, "confirm")
     })
 
     it("should display employees in the table", () => {
@@ -79,10 +78,8 @@ describe("EmployeeTable Delete", () => {
         expect(screen.getByText("john@example.com")).toBeInTheDocument()
     })
 
-    it("should ask for confirmation before deleting employee", async () => {
+    it("should open DeleteDialog confirmation before deleting employee", async () => {
         const user = userEvent.setup()
-
-        vi.mocked(window.confirm).mockReturnValue(false)
 
         render(
             <MemoryRouter>
@@ -96,16 +93,13 @@ describe("EmployeeTable Delete", () => {
 
         await user.click(deleteButtons[0])
 
-        expect(window.confirm).toHaveBeenCalledWith(
-            "are you sure to delete this employee"
-        )
+        expect(screen.getByText("Delete Employee")).toBeInTheDocument()
+        expect(screen.getByText(/Are you sure you want to delete/i)).toBeInTheDocument()
     })
 
     it("should delete employee when confirmation is accepted", async () => {
         const user = userEvent.setup()
 
-        vi.mocked(window.confirm).mockReturnValue(true)
-
         render(
             <MemoryRouter>
                 <EmployeeTable />
@@ -117,6 +111,12 @@ describe("EmployeeTable Delete", () => {
         })
 
         await user.click(deleteButtons[0])
+
+        const dialogDeleteButtons = screen.getAllByRole("button", {
+            name: "Delete",
+        })
+        // The confirmation button inside the dialog
+        await user.click(dialogDeleteButtons[dialogDeleteButtons.length - 1])
 
         expect(mockDispatch).toHaveBeenCalledWith({
             type: "employee/deleteEmployee",
@@ -127,8 +127,6 @@ describe("EmployeeTable Delete", () => {
     it("should not delete employee when confirmation is cancelled", async () => {
         const user = userEvent.setup()
 
-        vi.mocked(window.confirm).mockReturnValue(false)
-
         render(
             <MemoryRouter>
                 <EmployeeTable />
@@ -141,10 +139,14 @@ describe("EmployeeTable Delete", () => {
 
         await user.click(deleteButtons[0])
 
+        const cancelButton = screen.getByRole("button", { name: "Cancel" })
+        await user.click(cancelButton)
+
         expect(mockDispatch).not.toHaveBeenCalledWith({
             type: "employee/deleteEmployee",
             payload: "1",
         })
+        expect(screen.queryByText("Delete Employee")).not.toBeInTheDocument()
     })
 
     it("should navigate to edit employee page", async () => {
