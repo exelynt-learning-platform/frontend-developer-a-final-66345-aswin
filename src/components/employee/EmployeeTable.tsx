@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
 import { deleteEmployees, fetchEmployees } from '../../features/employees/employeeService'
@@ -11,6 +11,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined'
 import DeleteDialog from './DeleteDialog'
 import { DEFAULT_PAGE_SIZE, getAvatarUrl, getCountryFlag } from '../../constants/employeeConstants'
+import type { Country } from '../../types/country'
 
 const EmployeeTable = () => {
     const navigate = useNavigate()
@@ -25,10 +26,12 @@ const EmployeeTable = () => {
     const [selectedCountry, setSelectedCountry] = useState('All')
     const [selectedIds, setSelectedIds] = useState<string[]>([])
     const [currentPage, setCurrentPage] = useState(1)
+    const lastQueryRef = useRef(urlQuery)
 
     useEffect(() => {
-        const q = searchParams.get('search') || searchParams.get('query')
-        if (q !== null && q !== searchTerm) {
+        const q = searchParams.get('search') || searchParams.get('query') || ''
+        if (q !== lastQueryRef.current) {
+            lastQueryRef.current = q
             setSearchTerm(q)
             setCurrentPage(1)
         }
@@ -120,8 +123,8 @@ const EmployeeTable = () => {
                 }} aria-label="Filter by country">
                     <option value="All">All Countries</option>
                     {
-                        country && country.map((c: any) => {
-                            const name = c.country || c.name
+                        country && country.map((c: Country) => {
+                            const name = c.country || c.name || ''
                             return <option key={c.id || name} value={name}>{name}</option>
                         })
                     }

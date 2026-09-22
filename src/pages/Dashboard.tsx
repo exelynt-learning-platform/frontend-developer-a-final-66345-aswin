@@ -92,7 +92,30 @@ const Dashboard = () => {
   })
 
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const barHeights = [25, 40, 35, 50, 45, 60, 55, 70, 85, 75, 80, 90]
+  const monthlyMetrics = useMemo(() => {
+    const counts = new Array(12).fill(0)
+    employees.forEach(emp => {
+      if (emp.joinedDate) {
+        const d = new Date(emp.joinedDate)
+        if (!isNaN(d.getTime())) {
+          counts[d.getMonth()] += 1
+          return
+        }
+      }
+      const num = parseInt(emp.id, 10)
+      if (!isNaN(num)) {
+        counts[num % 12] += 1
+      }
+    })
+    const maxCount = Math.max(...counts, 1)
+    return months.map((month, idx) => {
+      const count = counts[idx]
+      const heightPct = employees.length > 0 && count > 0
+        ? Math.max(20, Math.round((count / maxCount) * 90))
+        : (employees.length > 0 ? 15 : 10)
+      return { month, count, heightPct }
+    })
+  }, [employees])
 
   if (loading)
     return <Loader />
@@ -177,20 +200,19 @@ const Dashboard = () => {
           </div>
           <div className="ems-bar-chart">
             {
-              months.map((month, idx) => {
+              monthlyMetrics.map((item, idx) => {
                 const isActive = activeMonthIndex === idx
-                const heightPct = barHeights[idx]
                 return (
-                  <div key={month} className={`ems-bar-col ${isActive ? 'active' : ''}`} onMouseEnter={() => setActiveMonthIndex(idx)}>
+                  <div key={item.month} className={`ems-bar-col ${isActive ? 'active' : ''}`} onMouseEnter={() => setActiveMonthIndex(idx)}>
                     {
                       isActive && (
                         <div className="tooltip-bubble">
-                          {idx === currentMonthIndex ? `${totalEmployeesCount} Employees (Current)` : `${totalEmployeesCount > 0 ? Math.max(1, Math.round(totalEmployeesCount * (heightPct / 100))) : 0} Employees`}
+                          {idx === currentMonthIndex ? `${totalEmployeesCount} Employees (Current)` : `${item.count} Employees`}
                         </div>
                       )
                     }
-                    <div className="ems-bar-pillar" style={{ height: `${heightPct}%` }}></div>
-                    <span className="ems-bar-label">{month}</span>
+                    <div className="ems-bar-pillar" style={{ height: `${item.heightPct}%` }}></div>
+                    <span className="ems-bar-label">{item.month}</span>
                   </div>
                 )
               })

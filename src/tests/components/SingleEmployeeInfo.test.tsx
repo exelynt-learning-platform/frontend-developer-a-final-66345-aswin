@@ -25,9 +25,13 @@ let mockEmployeeState: {
   error: null,
 }
 
+interface MockSingleStore {
+  emp: typeof mockEmployeeState
+}
+
 vi.mock("../../app/hooks", () => ({
   useAppDispatch: () => mockDispatch,
-  useAppSelector: (selector: any) =>
+  useAppSelector: <T,>(selector: (state: MockSingleStore) => T): T =>
     selector({
       emp: mockEmployeeState,
     }),

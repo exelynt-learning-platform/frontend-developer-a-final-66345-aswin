@@ -92,9 +92,15 @@ const employeeSlice = createSlice({
 
         build.addCase(updateEmployees.fulfilled, (state, action) => {
             state.loading = false
-            let index = state.employees.findIndex(emp => emp.id === action.payload.id)
-            if(index !== -1)
+            const index = state.employees.findIndex(emp => String(emp.id) === String(action.payload.id))
+            if (index !== -1) {
                 state.employees[index] = action.payload
+            } else {
+                state.employees.push(action.payload)
+            }
+            if (state.selectedEmployee && String(state.selectedEmployee.id) === String(action.payload.id)) {
+                state.selectedEmployee = action.payload
+            }
         })
 
         build.addCase(updateEmployees.rejected, (state, action) => {

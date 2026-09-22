@@ -159,6 +159,25 @@ describe('employeeSlice', () => {
     ])
   })
 
+  it('should append employee when updateEmployees.fulfilled and employee is not in list', () => {
+    const initialState = employeeReducer(
+      undefined,
+      fetchEmployees.fulfilled([employee1], 'request-id', undefined)
+    )
+
+    const state = employeeReducer(
+      initialState,
+      updateEmployees.fulfilled(
+        employee2,
+        'request-id',
+        { id: '2', data: { name: employee2.name, mail: employee2.mail, ph_no: employee2.ph_no, country: employee2.country, state: employee2.state, city: employee2.city } }
+      )
+    )
+
+    expect(state.employees).toHaveLength(2)
+    expect(state.employees.find(e => e.id === '2')).toEqual(employee2)
+  })
+
   it('should delete an employee when deleteEmployees.fulfilled', () => {
     const initialState = employeeReducer(
       undefined,

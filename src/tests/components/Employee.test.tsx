@@ -1,12 +1,14 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import EmployeeTable from '../../components/employee/EmployeeTable'
+import type { employee } from '../../types/employee'
+import type { Country } from '../../types/country'
 
 const mockDispatch = vi.fn()
 
-const mockEmployees = [
+const mockEmployees: employee[] = [
   {
     id: '1',
     name: 'John Doe',
@@ -21,35 +23,46 @@ const mockEmployees = [
     name: 'Jane Smith',
     mail: 'jane@example.com',
     ph_no: '9876543211',
-    country: 'India',
-    state: 'Karnataka',
-    city: 'Bangalore',
+    country: 'USA',
+    state: 'California',
+    city: 'San Francisco',
   },
 ]
 
-type mockEmployeeState = {
-  employees: typeof mockEmployees
-  loading: boolean
-  error: string | null
-  selectedEmployee: typeof mockEmployees[number] | null
-  searchResult: typeof mockEmployees[number] | null
+const mockCountries: Country[] = [
+  { id: '1', name: 'India' },
+  { id: '2', name: 'USA' }
+]
+
+interface MockStoreState {
+  emp: {
+    employees: employee[]
+    loading: boolean
+    error: string | null
+    selectedEmployee: employee | null
+    searchResult: employee | null
+  }
+  country: {
+    country: Country[]
+  }
 }
 
-let mockEmployeeState: any = {
-  employees: mockEmployees,
-  loading: false,
-  error: null,
-  selectedEmployee: null,
-  searchResult: null,
+let mockState: MockStoreState = {
+  emp: {
+    employees: mockEmployees,
+    loading: false,
+    error: null,
+    selectedEmployee: null,
+    searchResult: null,
+  },
+  country: {
+    country: mockCountries,
+  }
 }
 
 vi.mock('../../app/hooks', () => ({
   useAppDispatch: () => mockDispatch,
-  useAppSelector: (selector: any) =>
-    selector({
-      emp: mockEmployeeState,
-      country: { country: [] },
-    }),
+  useAppSelector: <T,>(selector: (state: MockStoreState) => T): T => selector(mockState),
 }))
 
 vi.mock('../../features/employees/employeeService', () => ({
@@ -62,21 +75,24 @@ vi.mock('../../features/employees/employeeService', () => ({
   }),
 }))
 
-describe('EmployeeTable', () => {
-
+describe('EmployeeTable component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-
-    mockEmployeeState = {
-      employees: mockEmployees,
-      loading: false,
-      error: null,
-      selectedEmployee: null,
-      searchResult: null,
+    mockState = {
+      emp: {
+        employees: [...mockEmployees],
+        loading: false,
+        error: null,
+        selectedEmployee: null,
+        searchResult: null,
+      },
+      country: {
+        country: mockCountries,
+      }
     }
   })
 
-  it('should display employees in the table', () => {
+  it('renders employees and table headers', () => {
     render(
       <MemoryRouter>
         <EmployeeTable />
@@ -85,14 +101,13 @@ describe('EmployeeTable', () => {
 
     expect(screen.getByText('John Doe')).toBeInTheDocument()
     expect(screen.getByText('Jane Smith')).toBeInTheDocument()
-
     expect(screen.getByText('john@example.com')).toBeInTheDocument()
     expect(screen.getByText('9876543210')).toBeInTheDocument()
+    expect(screen.getByText('India')).toBeInTheDocument()
   })
 
-  it('should display loading state', () => {
-    mockEmployeeState.loading = true
-
+  it('renders loading loader state', () => {
+    mockState.emp.loading = true
     render(
       <MemoryRouter>
         <EmployeeTable />
@@ -102,47 +117,9 @@ describe('EmployeeTable', () => {
     expect(screen.getByRole('status')).toBeInTheDocument()
   })
 
-  it('should display error state', () => {
-    mockEmployeeState.error = 'Failed to fetch employee details.'
-
-    render(
-      <MemoryRouter>
-        <EmployeeTable />
-      </MemoryRouter>
-    )
-
-    expect(
-      screen.getByText('Failed to fetch employee details.')
-    ).toBeInTheDocument()
-
-    expect(
-      screen.getByRole('button', { name: 'Retry' })
-    ).toBeInTheDocument()
-  })
-
-  it('should dispatch fetchEmployees when Retry is clicked', async () => {
+  it('renders error state and retries on button click', async () => {
     const user = userEvent.setup()
-
-    mockEmployeeState.error = 'Failed to fetch employee details.'
-
-    render(
-      <MemoryRouter>
-        <EmployeeTable />
-      </MemoryRouter>
-    )
-
-    await user.click(
-      screen.getByRole('button', { name: 'Retry' })
-    )
-
-    expect(mockDispatch).toHaveBeenCalledTimes(1)
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'employee/fetchEmployees',
-    })
-  })
-
-  it('should display empty state when there are no employees', () => {
-    mockEmployeeState.employees = []
+    mockState.emp.error = 'Failed to fetch employee details.'
 
     render(
       <MemoryRouter>
@@ -150,37 +127,18 @@ describe('EmployeeTable', () => {
       </MemoryRouter>
     )
 
-    expect(
-      screen.getByText('Employee not found')
-    ).toBeInTheDocument()
-
-    expect(
-      screen.getByRole('button', { name: 'Retry' })
-    ).toBeInTheDocument()
-  })
-
-  it('should dispatch fetchEmployees when empty state Retry is clicked', async () => {
-    const user = userEvent.setup()
-
-    mockEmployeeState.employees = []
-
-    render(
-      <MemoryRouter>
-        <EmployeeTable />
-      </MemoryRouter>
-    )
-
-    await user.click(
-      screen.getByRole('button', { name: 'Retry' })
-    )
+    expect(screen.getByText('Failed to fetch employee details.')).toBeInTheDocument()
+    const retryBtn = screen.getByRole('button', { name: /retry/i })
+    await user.click(retryBtn)
 
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'employee/fetchEmployees',
     })
   })
 
-  it('should navigate to edit page when Edit is clicked', async () => {
+  it('renders empty state when employee list is empty', async () => {
     const user = userEvent.setup()
+    mockState.emp.employees = []
 
     render(
       <MemoryRouter>
@@ -188,21 +146,16 @@ describe('EmployeeTable', () => {
       </MemoryRouter>
     )
 
-    const editButtons = screen.getAllByRole('button', {
-      name: 'Edit',
+    expect(screen.getByText('Employee not found')).toBeInTheDocument()
+    const retryBtn = screen.getByRole('button', { name: /retry/i })
+    await user.click(retryBtn)
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'employee/fetchEmployees',
     })
-
-    await user.click(editButtons[0])
-
-    /*
-      MemoryRouter keeps navigation internal.
-      This test mainly verifies that the Edit button
-      can be interacted with without errors.
-    */
-    expect(editButtons[0]).toBeInTheDocument()
   })
 
-  it('should delete employee after confirmation in DeleteDialog', async () => {
+  it('filters employees by search term', async () => {
     const user = userEvent.setup()
 
     render(
@@ -211,18 +164,70 @@ describe('EmployeeTable', () => {
       </MemoryRouter>
     )
 
-    const deleteButtons = screen.getAllByRole('button', {
-      name: 'Delete',
-    })
+    const searchInput = screen.getByPlaceholderText(/Search by ID, name, email or mobile/i)
+    await user.type(searchInput, 'Jane')
 
+    expect(screen.getByText('Jane Smith')).toBeInTheDocument()
+    expect(screen.queryByText('John Doe')).not.toBeInTheDocument()
+  })
+
+  it('filters employees by country selection', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter>
+        <EmployeeTable />
+      </MemoryRouter>
+    )
+
+    const countrySelect = screen.getByLabelText('Filter by country')
+    await user.selectOptions(countrySelect, 'USA')
+
+    expect(screen.getByText('Jane Smith')).toBeInTheDocument()
+    expect(screen.queryByText('John Doe')).not.toBeInTheDocument()
+  })
+
+  it('toggles select all checkboxes and row checkbox', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter>
+        <EmployeeTable />
+      </MemoryRouter>
+    )
+
+    const selectAllCheckbox = screen.getByLabelText('Select all employees')
+    expect(selectAllCheckbox).not.toBeChecked()
+
+    await user.click(selectAllCheckbox)
+    expect(selectAllCheckbox).toBeChecked()
+
+    await user.click(selectAllCheckbox)
+    expect(selectAllCheckbox).not.toBeChecked()
+
+    const singleRowCheckbox = screen.getByLabelText('Select employee John Doe')
+    await user.click(singleRowCheckbox)
+    expect(singleRowCheckbox).toBeChecked()
+  })
+
+  it('opens DeleteDialog confirmation and deletes employee on confirm', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter>
+        <EmployeeTable />
+      </MemoryRouter>
+    )
+
+    const deleteButtons = screen.getAllByRole('button', { name: 'Delete' })
     await user.click(deleteButtons[0])
 
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(screen.getByText('Delete Employee')).toBeInTheDocument()
+    expect(screen.getByText(/Are you sure you want to delete/i)).toBeInTheDocument()
 
-    const dialogDeleteButtons = screen.getAllByRole('button', {
-      name: 'Delete',
-    })
-    // Confirmation button in DeleteDialog
+    // Click confirm Delete in dialog
+    const dialogDeleteButtons = screen.getAllByRole('button', { name: 'Delete' })
     await user.click(dialogDeleteButtons[dialogDeleteButtons.length - 1])
 
     expect(mockDispatch).toHaveBeenCalledWith({
@@ -231,7 +236,7 @@ describe('EmployeeTable', () => {
     })
   })
 
-  it('should not delete employee when confirmation is cancelled in DeleteDialog', async () => {
+  it('cancels DeleteDialog without dispatching delete', async () => {
     const user = userEvent.setup()
 
     render(
@@ -240,10 +245,7 @@ describe('EmployeeTable', () => {
       </MemoryRouter>
     )
 
-    const deleteButtons = screen.getAllByRole('button', {
-      name: 'Delete',
-    })
-
+    const deleteButtons = screen.getAllByRole('button', { name: 'Delete' })
     await user.click(deleteButtons[0])
 
     const cancelButton = screen.getByRole('button', { name: 'Cancel' })
@@ -253,7 +255,24 @@ describe('EmployeeTable', () => {
       type: 'employee/deleteEmployee',
       payload: '1',
     })
-    expect(screen.queryByText('Delete Employee')).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
+  it('navigates to edit and view routes when action buttons are clicked', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter initialEntries={['/employees']}>
+        <Routes>
+          <Route path="/employees" element={<EmployeeTable />} />
+          <Route path="/employees/edit/:id" element={<div>Edit Page</div>} />
+          <Route path="/employees/:id" element={<div>View Page</div>} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    const editButtons = screen.getAllByRole('button', { name: 'Edit' })
+    await user.click(editButtons[0])
+    expect(screen.getByText('Edit Page')).toBeInTheDocument()
+  })
 })

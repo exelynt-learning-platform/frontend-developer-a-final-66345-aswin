@@ -38,9 +38,14 @@ let mockCountryState = {
   error: null as string | null,
 }
 
+interface MockDashboardStore {
+  emp: typeof mockEmpState
+  country: typeof mockCountryState
+}
+
 vi.mock('../../app/hooks', () => ({
   useAppDispatch: () => mockDispatch,
-  useAppSelector: (selector: any) =>
+  useAppSelector: <T,>(selector: (state: MockDashboardStore) => T): T =>
     selector({
       emp: mockEmpState,
       country: mockCountryState,

@@ -3,7 +3,8 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import EmployeeForm from '../../components/employee/EmployeeForm'
-import type { employee } from '../../types/employee'
+import type { employee, emp_formData } from '../../types/employee'
+import type { Country } from '../../types/country'
 
 interface MockThunkPromise<T> extends Promise<T> {
   unwrap: () => Promise<T>
@@ -31,7 +32,11 @@ let mockEmployeeState: {
   error: null,
 }
 
-let mockCountryState = {
+let mockCountryState: {
+  country: Country[]
+  loading: boolean
+  error: string | null
+} = {
   country: [
     { id: '1', name: 'India' },
     { id: '2', name: 'USA' },
@@ -41,10 +46,15 @@ let mockCountryState = {
   error: null,
 }
 
+interface MockFormStoreState {
+  emp: typeof mockEmployeeState
+  country: typeof mockCountryState
+}
+
 vi.mock('../../app/hooks', () => ({
   useAppDispatch: () => mockDispatch,
 
-  useAppSelector: (selector: any) =>
+  useAppSelector: <T,>(selector: (state: MockFormStoreState) => T): T =>
     selector({
       emp: mockEmployeeState,
       country: mockCountryState,
@@ -57,12 +67,12 @@ vi.mock('../../features/employees/employeeService', () => ({
     payload: id,
   }),
 
-  createEmployees: (data: any) => ({
+  createEmployees: (data: emp_formData) => ({
     type: 'employee/createEmployee',
     payload: data,
   }),
 
-  updateEmployees: (data: any) => ({
+  updateEmployees: (data: { id: string; data: emp_formData }) => ({
     type: 'employee/updateEmployee',
     payload: data,
   }),
