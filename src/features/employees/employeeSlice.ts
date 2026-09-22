@@ -1,22 +1,24 @@
 import { createSlice } from "@reduxjs/toolkit"
-import type { employee } from "../../types/employee"
+import type { Employee } from "../../types/employee"
 import { fetchEmployees, fetchEmployeeById, createEmployees, updateEmployees, deleteEmployees } from "./employeeService"
 import { ERROR_MESSAGE } from "../../constants/CentralizedErrorMessage"
 
-interface employeeState {
-    employees: employee[]
-    selectedEmployee: employee | null
-    searchResult: employee | null
+interface EmployeeState {
+    employees: Employee[]
+    selectedEmployee: Employee | null
+    searchResult: Employee | null
     loading: boolean
     error: string | null
+    deleteError: string | null
 }
 
-const initialState: employeeState = {
+const initialState: EmployeeState = {
     employees: [],
     selectedEmployee: null,
     searchResult: null,
     loading: false,
-    error: null
+    error: null,
+    deleteError: null
 }
 
 const employeeSlice = createSlice({
@@ -25,6 +27,10 @@ const employeeSlice = createSlice({
     reducers: {
         clearError: (state) => {
             state.error = null
+        },
+
+        clearDeleteError: (state) => {
+            state.deleteError = null
         },
 
         clearSelectedEmployee: (state) => {
@@ -65,6 +71,8 @@ const employeeSlice = createSlice({
         })
 
         build.addCase(fetchEmployeeById.rejected, (state, action) => {
+            // Suppress abort errors silently — they are not user-facing
+            if (action.payload === '') return
             state.loading = false
             state.selectedEmployee = null
             state.error = action.payload ?? ERROR_MESSAGE.Employee.FETCH_BY_ID_FAILED
@@ -111,6 +119,7 @@ const employeeSlice = createSlice({
         build.addCase(deleteEmployees.pending, (state) => {
             state.loading = true
             state.error = null
+            state.deleteError = null
         })
 
         build.addCase(deleteEmployees.fulfilled, (state, action) => {
@@ -121,11 +130,11 @@ const employeeSlice = createSlice({
 
         build.addCase(deleteEmployees.rejected, (state, action) => {
             state.loading = false
-            state.error = action.payload ?? ERROR_MESSAGE.Employee.DELETE_FAILED
+            state.deleteError = action.payload ?? ERROR_MESSAGE.Employee.DELETE_FAILED
         })
     }
 })
 
-export const { clearError, clearSelectedEmployee, clearSearchResult } = employeeSlice.actions
+export const { clearError, clearDeleteError, clearSelectedEmployee, clearSearchResult } = employeeSlice.actions
 
 export default employeeSlice.reducer

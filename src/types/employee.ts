@@ -1,4 +1,4 @@
-export interface employee {
+export interface Employee {
     id: string;
     name: string;
     mail: string;
@@ -11,7 +11,7 @@ export interface employee {
     joinedDate?: string;
 }
 
-export interface emp_formData {
+export interface EmployeeFormData {
     name: string;
     mail: string;
     ph_no: string;
@@ -40,7 +40,7 @@ export interface RawEmployee {
     [key: string]: unknown;
 }
 
-export const normalizeEmployee = (raw: RawEmployee): employee => {
+export const normalizeEmployee = (raw: RawEmployee): Employee => {
     return {
         id: String(raw?.id ?? ''),
         name: raw?.name ?? '',
@@ -54,3 +54,8 @@ export const normalizeEmployee = (raw: RawEmployee): employee => {
         ...(raw?.joinedDate || raw?.createdAt ? { joinedDate: raw.joinedDate || raw.createdAt } : {})
     }
 }
+
+/** @deprecated Use Employee instead */
+export type employee = Employee
+/** @deprecated Use EmployeeFormData instead */
+export type emp_formData = EmployeeFormData

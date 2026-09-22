@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom"
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined"
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined'
 import AddIcon from '@mui/icons-material/Add'
-import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined'
+import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined'
 import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 
@@ -36,19 +36,19 @@ const Sidebar = () => {
         </NavLink>
 
         <NavLink to="/employees/search" className={({ isActive }) => `ems-nav-link ${isActive ? "active" : ""}`}>
-          <PublicOutlinedIcon />
-          <span>Countries</span>
+          <SearchOutlinedIcon />
+          <span>Search</span>
         </NavLink>
 
-        <button type="button" className="ems-nav-link" style={{ background: 'transparent', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }} onClick={() => { }}>
+        <NavLink to="/main" end={false} className={({ isActive }) => `ems-nav-link ${isActive ? "" : ""}`}>
           <BarChartOutlinedIcon />
           <span>Reports</span>
-        </button>
+        </NavLink>
 
-        <button type="button" className="ems-nav-link" style={{ background: 'transparent', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }} onClick={() => { }}>
+        <NavLink to="/main" end={false} className={({ isActive }) => `ems-nav-link ${isActive ? "" : ""}`}>
           <SettingsOutlinedIcon />
           <span>Settings</span>
-        </button>
+        </NavLink>
       </nav>
 
       <div className="ems-sidebar-bottom">

@@ -1,16 +1,17 @@
 import type { UseFormRegister, FieldErrors, UseFormHandleSubmit } from 'react-hook-form'
-import type { emp_formData } from '../../types/employee'
+import type { EmployeeFormData } from '../../types/employee'
 import type { Country } from '../../types/country'
+import { VALIDATION_RULES } from '../../constants/validationConstants'
 import ArrowBackOutlinedIcon from '@mui/icons-material/ArrowBackOutlined'
 import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined'
 import EditNoteOutlinedIcon from '@mui/icons-material/EditNoteOutlined'
 
 export interface EmployeeFormViewProps {
     isEdit: boolean
-    register: UseFormRegister<emp_formData>
-    handleSubmit: UseFormHandleSubmit<emp_formData>
-    errors: FieldErrors<emp_formData>
-    onSubmit: (data: emp_formData) => void
+    register: UseFormRegister<EmployeeFormData>
+    handleSubmit: UseFormHandleSubmit<EmployeeFormData>
+    errors: FieldErrors<EmployeeFormData>
+    onSubmit: (data: EmployeeFormData) => void
     onCancel: () => void
     countries: Country[]
     isSubmitting?: boolean
@@ -71,17 +72,7 @@ const EmployeeFormView = ({
                                     type="text"
                                     className={`ems-input ${errors.name ? 'is-invalid' : ''}`}
                                     placeholder="Enter the employee name"
-                                    {...register("name", {
-                                        required: "Name is required",
-                                        minLength: {
-                                            value: 3,
-                                            message: "Name must be at least 3 characters"
-                                        },
-                                        maxLength: {
-                                            value: 35,
-                                            message: "Name cannot exceed 35 characters"
-                                        }
-                                    })}
+                                    {...register("name", VALIDATION_RULES.NAME)}
                                 />
                                 {errors.name && (
                                     <span className="ems-form-error">{errors.name.message}</span>
@@ -94,13 +85,7 @@ const EmployeeFormView = ({
                                     type="text"
                                     className={`ems-input ${errors.mail ? 'is-invalid' : ''}`}
                                     placeholder="Enter the employee mail"
-                                    {...register("mail", {
-                                        required: "Email is required",
-                                        pattern: {
-                                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                            message: "Please enter a valid email address"
-                                        }
-                                    })}
+                                    {...register("mail", VALIDATION_RULES.EMAIL)}
                                 />
                                 {errors.mail && (
                                     <span className="ems-form-error">{errors.mail.message}</span>
@@ -113,17 +98,7 @@ const EmployeeFormView = ({
                                     type="text"
                                     className={`ems-input ${errors.ph_no ? 'is-invalid' : ''}`}
                                     placeholder="Enter the employee mobile"
-                                    {...register("ph_no", {
-                                        required: "Mobile number is required",
-                                        minLength: {
-                                            value: 10,
-                                            message: "Mobile must be 10 digits"
-                                        },
-                                        maxLength: {
-                                            value: 10,
-                                            message: "Mobile must be 10 digits"
-                                        }
-                                    })}
+                                    {...register("ph_no", VALIDATION_RULES.PHONE)}
                                 />
                                 {errors.ph_no && (
                                     <span className="ems-form-error">{errors.ph_no.message}</span>
@@ -134,9 +109,7 @@ const EmployeeFormView = ({
                                 <label className="ems-form-label">Country <span className="required">*</span></label>
                                 <select
                                     className={`ems-select ${errors.country ? 'is-invalid' : ''}`}
-                                    {...register("country", {
-                                        required: "Country is required"
-                                    })}
+                                    {...register("country", VALIDATION_RULES.COUNTRY)}
                                 >
                                     <option value="">Select country</option>
                                     {countries && countries.map((item) => {
@@ -157,9 +130,7 @@ const EmployeeFormView = ({
                                     type="text"
                                     className={`ems-input ${errors.state ? 'is-invalid' : ''}`}
                                     placeholder="Enter the employee state"
-                                    {...register("state", {
-                                        required: "State is required"
-                                    })}
+                                    {...register("state", VALIDATION_RULES.STATE)}
                                 />
                                 {errors.state && (
                                     <span className="ems-form-error">{errors.state.message}</span>
@@ -172,9 +143,7 @@ const EmployeeFormView = ({
                                     type="text"
                                     className={`ems-input ${errors.city ? 'is-invalid' : ''}`}
                                     placeholder="Enter the employee city"
-                                    {...register("city", {
-                                        required: "City is required"
-                                    })}
+                                    {...register("city", VALIDATION_RULES.CITY)}
                                 />
                                 {errors.city && (
                                     <span className="ems-form-error">{errors.city.message}</span>

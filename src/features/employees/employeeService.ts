@@ -1,17 +1,10 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getEmployees, getEmployeeById, createEmployee, updateEmployee, deleteEmployee } from '../../api/employeeApi'
-import type { employee, emp_formData } from "../../types/employee"
+import type { Employee, EmployeeFormData } from "../../types/employee"
 import { ERROR_MESSAGE } from "../../constants/CentralizedErrorMessage"
+import { extractErrorMessage } from "../../utils/errorUtils"
 
-const extractErrorMessage = (error: unknown, fallback: string): string => {
-    if (typeof error === 'object' && error !== null) {
-        const err = error as { response?: { data?: { message?: string } }; message?: string }
-        return err.response?.data?.message || err.message || fallback
-    }
-    return fallback
-}
-
-export const fetchEmployees = createAsyncThunk<employee[], void, { rejectValue: string }>('employees/fetchEmployees', async (_, { rejectWithValue }) => {
+export const fetchEmployees = createAsyncThunk<Employee[], void, { rejectValue: string }>('employees/fetchEmployees', async (_, { rejectWithValue }) => {
     try {
         const employees = await getEmployees()
         return employees
@@ -21,17 +14,32 @@ export const fetchEmployees = createAsyncThunk<employee[], void, { rejectValue: 
     }
 })
 
-export const fetchEmployeeById = createAsyncThunk<employee, string, { rejectValue: string }>('employees/fetchEmployeeById', async (id, { rejectWithValue }) => {
+/** Active AbortController for the latest fetchEmployeeById call (prevents stale responses) */
+let fetchByIdController: AbortController | null = null
+
+export const fetchEmployeeById = createAsyncThunk<Employee, string, { rejectValue: string }>('employees/fetchEmployeeById', async (id, { rejectWithValue }) => {
+    // Abort any previous in-flight request to prevent stale responses
+    if (fetchByIdController) {
+        fetchByIdController.abort()
+    }
+    fetchByIdController = new AbortController()
+
     try {
-        const employeeId = await getEmployeeById(id)
-        return employeeId
+        const employee = await getEmployeeById(id, fetchByIdController.signal)
+        return employee
     }
     catch (error) {
+        // Don't treat abort as a user-visible error
+        if (error instanceof DOMException && error.name === 'AbortError') {
+            return rejectWithValue('')
+        }
         return rejectWithValue(extractErrorMessage(error, ERROR_MESSAGE.Employee.FETCH_BY_ID_FAILED))
+    } finally {
+        fetchByIdController = null
     }
 })
 
-export const createEmployees = createAsyncThunk<employee, emp_formData, { rejectValue: string }>('employees/createEmployee', async (data, { rejectWithValue }) => {
+export const createEmployees = createAsyncThunk<Employee, EmployeeFormData, { rejectValue: string }>('employees/createEmployee', async (data, { rejectWithValue }) => {
     try {
         const addEmployee = await createEmployee(data)
         return addEmployee
@@ -41,7 +49,7 @@ export const createEmployees = createAsyncThunk<employee, emp_formData, { reject
     }
 })
 
-export const updateEmployees = createAsyncThunk<employee, { id: string, data: emp_formData }, { rejectValue: string }>('employees/updateEmployee', async ({ id, data }, { rejectWithValue }) => {
+export const updateEmployees = createAsyncThunk<Employee, { id: string, data: EmployeeFormData }, { rejectValue: string }>('employees/updateEmployee', async ({ id, data }, { rejectWithValue }) => {
     try {
         const modifyEmployee = await updateEmployee(id, data)
         return modifyEmployee

@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import EmployeeForm from '../../components/employee/EmployeeForm'
-import type { employee, emp_formData } from '../../types/employee'
+import type { Employee, EmployeeFormData } from '../../types/employee'
 import type { Country } from '../../types/country'
 
 interface MockThunkPromise<T> extends Promise<T> {
@@ -23,7 +23,7 @@ const mockDispatch = vi.fn(() =>
 )
 
 let mockEmployeeState: {
-  selectedEmployee: employee | null
+  selectedEmployee: Employee | null
   loading: boolean
   error: string | null
 } = {
@@ -67,12 +67,16 @@ vi.mock('../../features/employees/employeeService', () => ({
     payload: id,
   }),
 
-  createEmployees: (data: emp_formData) => ({
+  fetchEmployees: () => ({
+    type: 'employee/fetchEmployees',
+  }),
+
+  createEmployees: (data: EmployeeFormData) => ({
     type: 'employee/createEmployee',
     payload: data,
   }),
 
-  updateEmployees: (data: { id: string; data: emp_formData }) => ({
+  updateEmployees: (data: { id: string; data: EmployeeFormData }) => ({
     type: 'employee/updateEmployee',
     payload: data,
   }),

@@ -3,12 +3,12 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import EmployeeTable from '../../components/employee/EmployeeTable'
-import type { employee } from '../../types/employee'
+import type { Employee } from '../../types/employee'
 import type { Country } from '../../types/country'
 
 const mockDispatch = vi.fn()
 
-const mockEmployees: employee[] = [
+const mockEmployees: Employee[] = [
   {
     id: '1',
     name: 'John Doe',
@@ -36,11 +36,12 @@ const mockCountries: Country[] = [
 
 interface MockStoreState {
   emp: {
-    employees: employee[]
+    employees: Employee[]
     loading: boolean
     error: string | null
-    selectedEmployee: employee | null
-    searchResult: employee | null
+    deleteError: string | null
+    selectedEmployee: Employee | null
+    searchResult: Employee | null
   }
   country: {
     country: Country[]
@@ -52,6 +53,7 @@ let mockState: MockStoreState = {
     employees: mockEmployees,
     loading: false,
     error: null,
+    deleteError: null,
     selectedEmployee: null,
     searchResult: null,
   },
@@ -69,11 +71,20 @@ vi.mock('../../features/employees/employeeService', () => ({
   deleteEmployees: (id: string) => ({
     type: 'employee/deleteEmployee',
     payload: id,
+    unwrap: () => Promise.resolve(id),
   }),
   fetchEmployees: () => ({
     type: 'employee/fetchEmployees',
   }),
 }))
+
+vi.mock('../../features/employees/employeeSlice', async () => {
+  const actual = await vi.importActual<Record<string, unknown>>('../../features/employees/employeeSlice')
+  return {
+    ...actual,
+    clearDeleteError: () => ({ type: 'employee/clearDeleteError' }),
+  }
+})
 
 describe('EmployeeTable component', () => {
   beforeEach(() => {
@@ -83,6 +94,7 @@ describe('EmployeeTable component', () => {
         employees: [...mockEmployees],
         loading: false,
         error: null,
+        deleteError: null,
         selectedEmployee: null,
         searchResult: null,
       },

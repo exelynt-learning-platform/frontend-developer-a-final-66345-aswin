@@ -4,11 +4,13 @@ import { fetchEmployees } from '../features/employees/employeeService'
 import { fetchCountry } from '../features/countries/countryService'
 import { Loader } from '../components/common/Loader'
 import { ErrorMessage } from '../components/common/ErrorMessage'
-import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined'
-import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined'
-import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined'
-import LocationCityOutlinedIcon from '@mui/icons-material/LocationCityOutlined'
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
+import StatsGrid from '../components/dashboard/StatsGrid'
+import BarChartCard from '../components/dashboard/BarChartCard'
+import DonutChartCard from '../components/dashboard/DonutChartCard'
+
+const SLICE_COLORS = ['#3b82f6', '#06b6d4', '#eab308', '#ef4444', '#8b5cf6', '#3f3f46']
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 const Dashboard = () => {
   const appDispatch = useAppDispatch()
@@ -43,22 +45,20 @@ const Dashboard = () => {
   }
 
   const totalEmployeesCount = employees.length
+
   const totalCountriesCount = useMemo(() => {
     const activeCountries = new Set(employees.map(e => e.country?.trim()).filter(Boolean)).size
     return activeCountries || country.length
   }, [employees, country])
 
-  const uniqueStates = useMemo(() => {
+  const totalStatesCount = useMemo(() => {
     return new Set(employees.map(e => e.state?.trim()).filter(Boolean)).size
   }, [employees])
-  const totalStatesCount = uniqueStates
 
-  const uniqueDistricts = useMemo(() => {
+  const totalDistrictsCount = useMemo(() => {
     return new Set(employees.map(e => e.city?.trim()).filter(Boolean)).size
   }, [employees])
-  const totalDistrictsCount = uniqueDistricts
 
-  const sliceColors = ['#3b82f6', '#06b6d4', '#eab308', '#ef4444', '#8b5cf6', '#3f3f46']
   const countryBreakdown = useMemo(() => {
     if (employees.length === 0) return []
     const counts: Record<string, number> = {}
@@ -76,22 +76,23 @@ const Dashboard = () => {
   }, [employees])
 
   const circumference = 2 * Math.PI * 38
-  let cumulativeOffset = 0
-  const donutSlices = countryBreakdown.map((item, idx) => {
-    const fraction = totalEmployeesCount > 0 ? item.count / totalEmployeesCount : 0
-    const dashLength = fraction * circumference
-    const slice = {
-      name: item.name,
-      count: item.count,
-      color: sliceColors[idx % sliceColors.length],
-      strokeDasharray: `${dashLength.toFixed(1)} ${(circumference - dashLength).toFixed(1)}`,
-      strokeDashoffset: -cumulativeOffset
-    }
-    cumulativeOffset += dashLength
-    return slice
-  })
+  const donutSlices = useMemo(() => {
+    let cumulativeOffset = 0
+    return countryBreakdown.map((item, idx) => {
+      const fraction = totalEmployeesCount > 0 ? item.count / totalEmployeesCount : 0
+      const dashLength = fraction * circumference
+      const slice = {
+        name: item.name,
+        count: item.count,
+        color: SLICE_COLORS[idx % SLICE_COLORS.length],
+        strokeDasharray: `${dashLength.toFixed(1)} ${(circumference - dashLength).toFixed(1)}`,
+        strokeDashoffset: -cumulativeOffset
+      }
+      cumulativeOffset += dashLength
+      return slice
+    })
+  }, [countryBreakdown, totalEmployeesCount, circumference])
 
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   const monthlyMetrics = useMemo(() => {
     const counts = new Array(12).fill(0)
     employees.forEach(emp => {
@@ -108,7 +109,7 @@ const Dashboard = () => {
       }
     })
     const maxCount = Math.max(...counts, 1)
-    return months.map((month, idx) => {
+    return MONTHS.map((month, idx) => {
       const count = counts[idx]
       const heightPct = employees.length > 0 && count > 0
         ? Math.max(20, Math.round((count / maxCount) * 90))
@@ -135,139 +136,26 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="ems-stats-grid">
-        <div className="ems-stat-card">
-          <div className="ems-stat-icon green">
-            <PeopleOutlinedIcon />
-          </div>
-          <div className="ems-stat-details">
-            <span className="ems-stat-title">Total Employees</span>
-            <div className="ems-stat-value-row">
-              <span className="ems-stat-value">{totalEmployeesCount}</span>
-              <span className="ems-stat-trend">Active</span>
-            </div>
-            <span className="ems-stat-subtext">Registered in directory</span>
-          </div>
-        </div>
-
-        <div className="ems-stat-card">
-          <div className="ems-stat-icon blue">
-            <PublicOutlinedIcon />
-          </div>
-          <div className="ems-stat-details">
-            <span className="ems-stat-title">Countries</span>
-            <div className="ems-stat-value-row">
-              <span className="ems-stat-value">{totalCountriesCount}</span>
-              <span className="ems-stat-trend">Global</span>
-            </div>
-            <span className="ems-stat-subtext">Active regions</span>
-          </div>
-        </div>
-
-        <div className="ems-stat-card">
-          <div className="ems-stat-icon red">
-            <SecurityOutlinedIcon />
-          </div>
-          <div className="ems-stat-details">
-            <span className="ems-stat-title">States</span>
-            <div className="ems-stat-value-row">
-              <span className="ems-stat-value">{totalStatesCount}</span>
-              <span className="ems-stat-trend">Regional</span>
-            </div>
-            <span className="ems-stat-subtext">Across territories</span>
-          </div>
-        </div>
-
-        <div className="ems-stat-card">
-          <div className="ems-stat-icon yellow">
-            <LocationCityOutlinedIcon />
-          </div>
-          <div className="ems-stat-details">
-            <span className="ems-stat-title">Districts</span>
-            <div className="ems-stat-value-row">
-              <span className="ems-stat-value">{totalDistrictsCount}</span>
-              <span className="ems-stat-trend">Local</span>
-            </div>
-            <span className="ems-stat-subtext">Cities &amp; districts</span>
-          </div>
-        </div>
-      </div>
+      <StatsGrid
+        totalEmployees={totalEmployeesCount}
+        totalCountries={totalCountriesCount}
+        totalStates={totalStatesCount}
+        totalDistricts={totalDistrictsCount}
+      />
 
       <div className="ems-dashboard-grid">
-        <div className="ems-chart-card">
-          <div className="ems-chart-header">
-            <h3>Team Overview</h3>
-          </div>
-          <div className="ems-bar-chart">
-            {
-              monthlyMetrics.map((item, idx) => {
-                const isActive = activeMonthIndex === idx
-                return (
-                  <div key={item.month} className={`ems-bar-col ${isActive ? 'active' : ''}`} onMouseEnter={() => setActiveMonthIndex(idx)}>
-                    {
-                      isActive && (
-                        <div className="tooltip-bubble">
-                          {idx === currentMonthIndex ? `${totalEmployeesCount} Employees (Current)` : `${item.count} Employees`}
-                        </div>
-                      )
-                    }
-                    <div className="ems-bar-pillar" style={{ height: `${item.heightPct}%` }}></div>
-                    <span className="ems-bar-label">{item.month}</span>
-                  </div>
-                )
-              })
-            }
-          </div>
-        </div>
+        <BarChartCard
+          monthlyMetrics={monthlyMetrics}
+          activeMonthIndex={activeMonthIndex}
+          currentMonthIndex={currentMonthIndex}
+          totalEmployees={totalEmployeesCount}
+          onHoverMonth={setActiveMonthIndex}
+        />
 
-        <div className="ems-chart-card">
-          <div className="ems-chart-header">
-            <h3>Employees by Country</h3>
-          </div>
-
-          <div className="ems-donut-wrapper">
-            <div className="ems-donut-visual">
-              <svg width="140" height="140" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="38" fill="transparent" stroke="#f4f3ee" strokeWidth="11" />
-                <g transform="rotate(-90 50 50)">
-                  {
-                    donutSlices.map((slice) => (
-                      <circle
-                        key={slice.name}
-                        cx="50" cy="50" r="38" fill="transparent"
-                        stroke={slice.color} strokeWidth="11"
-                        strokeDasharray={slice.strokeDasharray}
-                        strokeDashoffset={slice.strokeDashoffset}
-                      />
-                    ))
-                  }
-                </g>
-              </svg>
-              <div className="ems-donut-center">
-                <strong>{totalEmployeesCount}</strong>
-                <small>Employees</small>
-              </div>
-            </div>
-
-            <div className="ems-donut-legend">
-              {
-                donutSlices.length === 0 ? (
-                  <span style={{ color: '#71717a', fontSize: '13px', padding: '16px 0' }}>No employee records found</span>
-                ) : (
-                  donutSlices.map((slice) => (
-                    <div key={slice.name} className="ems-legend-item">
-                      <span className="ems-legend-name">
-                        <span className="ems-legend-dot" style={{ backgroundColor: slice.color }}></span>
-                        {slice.name}
-                      </span>
-                      <span className="ems-legend-count">{slice.count}</span>
-                    </div>
-                  ))
-                )
-              }
-            </div>
-          </div>
-        </div>
+        <DonutChartCard
+          donutSlices={donutSlices}
+          totalEmployees={totalEmployeesCount}
+        />
 
         <div className="ems-quote-card">
           <h2>Great People Build Great Teams.</h2>

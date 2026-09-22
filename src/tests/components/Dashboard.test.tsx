@@ -126,10 +126,10 @@ describe('Dashboard component', () => {
     expect(rotatedGroup).toBeInTheDocument()
   })
 
-  it('allows clicking monthly bar columns', () => {
+  it('allows hovering monthly bar columns to show tooltip', () => {
     render(<Dashboard />)
     const janBar = screen.getByText('Jan')
-    fireEvent.click(janBar.parentElement!)
-    expect(screen.getByText(/Monthly Joinings/)).toBeInTheDocument()
+    fireEvent.mouseEnter(janBar.parentElement!)
+    expect(screen.getByText(/Employees/)).toBeInTheDocument()
   })
 })

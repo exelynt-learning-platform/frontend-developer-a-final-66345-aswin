@@ -347,7 +347,30 @@ describe('employeeSlice', () => {
       deleteEmployees.rejected(new Error('Failed'), 'request-id', '1', 'Failed to delete employee')
     )
     expect(state.loading).toBe(false)
-    expect(state.error).toBe('Failed to delete employee')
+    expect(state.deleteError).toBe('Failed to delete employee')
+  })
+
+  it('should clear deleteError', () => {
+    const stateWithDeleteError = employeeReducer(
+      undefined,
+      deleteEmployees.rejected(new Error('Failed'), 'request-id', '1', 'Delete failed')
+    )
+    const state = employeeReducer(
+      stateWithDeleteError,
+      { type: 'employee/clearDeleteError' }
+    )
+    expect(state.deleteError).toBeNull()
+  })
+
+  it('should suppress abort errors silently in fetchEmployeeById.rejected', () => {
+    const state = employeeReducer(
+      { employees: [], selectedEmployee: employee1, searchResult: employee1, loading: true, error: null, deleteError: null },
+      fetchEmployeeById.rejected(new Error('Aborted'), 'request-id', '1', '')
+    )
+    // Abort errors (empty payload) should not change state
+    expect(state.loading).toBe(true)
+    expect(state.selectedEmployee).toEqual(employee1)
+    expect(state.error).toBeNull()
   })
 
 })

@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useForm } from 'react-hook-form'
 import EmployeeFormView from '../../components/employee/EmployeeFormView'
-import type { emp_formData } from '../../types/employee'
+import type { EmployeeFormData } from '../../types/employee'
 import type { Country } from '../../types/country'
 
 const mockCountries: Country[] = [
@@ -21,10 +21,10 @@ const FormWrapper = ({
   isEdit?: boolean
   submitError?: string | null
   isSubmitting?: boolean
-  onSubmit?: (data: emp_formData) => void
+  onSubmit?: (data: EmployeeFormData) => void
   onCancel?: () => void
 }) => {
-  const { register, handleSubmit, formState: { errors } } = useForm<emp_formData>()
+  const { register, handleSubmit, formState: { errors } } = useForm<EmployeeFormData>()
 
   return (
     <EmployeeFormView

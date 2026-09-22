@@ -81,4 +81,10 @@ describe('Employee API', () => {
     ).rejects.toThrow()
   })
 
+  it('should reject invalid employee ID containing slashes or malicious paths', async () => {
+    await expect(getEmployeeById('../admin')).rejects.toThrow(/Invalid employee ID/)
+    await expect(getEmployeeById('1/2')).rejects.toThrow(/Invalid employee ID/)
+    await expect(getEmployeeById('')).rejects.toThrow(/Invalid employee ID/)
+  })
+
 })

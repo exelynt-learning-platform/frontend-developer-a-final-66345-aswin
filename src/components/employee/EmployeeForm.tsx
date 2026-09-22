@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import type { emp_formData } from "../../types/employee"
+import type { EmployeeFormData } from "../../types/employee"
 import { useForm } from 'react-hook-form'
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
-import { createEmployees, fetchEmployeeById, updateEmployees } from "../../features/employees/employeeService"
+import { createEmployees, fetchEmployeeById, fetchEmployees, updateEmployees } from "../../features/employees/employeeService"
 import { clearError, clearSelectedEmployee } from "../../features/employees/employeeSlice"
 import { fetchCountry } from "../../features/countries/countryService"
 import { Loader } from "../common/Loader"
 import { ErrorMessage } from "../common/ErrorMessage"
 import EmployeeFormView from "./EmployeeFormView"
+import { extractErrorMessage } from "../../utils/errorUtils"
 
 const EmployeeForm = () => {
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<emp_formData>()
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<EmployeeFormData>()
     const { id } = useParams()
     const navigate = useNavigate()
     const appDispatch = useAppDispatch()
@@ -51,7 +52,7 @@ const EmployeeForm = () => {
         }
     }, [id, selectedEmployee, reset])
 
-    const onPlace = async (data: emp_formData) => {
+    const onFormSubmit = async (data: EmployeeFormData) => {
         setSubmitError(null)
         setIsSubmitting(true)
         try {
@@ -60,11 +61,11 @@ const EmployeeForm = () => {
             } else {
                 await appDispatch(createEmployees(data)).unwrap()
             }
+            // Re-fetch employee list so /employees page shows fresh data
+            appDispatch(fetchEmployees())
             navigate("/employees")
         } catch (err: unknown) {
-            const message = typeof err === 'string'
-                ? err
-                : (err as { message?: string })?.message || "Failed to save employee. Please try again."
+            const message = extractErrorMessage(err, "Failed to save employee. Please try again.")
             setSubmitError(message)
         } finally {
             setIsSubmitting(false)
@@ -92,7 +93,7 @@ const EmployeeForm = () => {
             register={register}
             handleSubmit={handleSubmit}
             errors={errors}
-            onSubmit={onPlace}
+            onSubmit={onFormSubmit}
             onCancel={() => navigate("/employees")}
             countries={country}
             isSubmitting={isSubmitting}

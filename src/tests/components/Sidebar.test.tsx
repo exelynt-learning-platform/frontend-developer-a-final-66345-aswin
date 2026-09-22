@@ -11,7 +11,7 @@ describe('Sidebar component', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByText('EmployeeHub')).toBeInTheDocument()
+    expect(screen.getByText('Exelynt')).toBeInTheDocument()
     expect(screen.getByText('Dashboard')).toBeInTheDocument()
     expect(screen.getByText('Employees')).toBeInTheDocument()
     expect(screen.getByText('Search')).toBeInTheDocument()
