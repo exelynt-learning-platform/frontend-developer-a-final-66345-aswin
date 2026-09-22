@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { useAppDispatch, useAppSelector } from "../app/hooks"
 import { fetchEmployeeById } from "../features/employees/employeeService"
 import { clearError, clearSearchResult } from "../features/employees/employeeSlice"
@@ -11,6 +11,7 @@ import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 
 const SearchEmployee = () => {
+  const [searchParams] = useSearchParams()
   const [searchId, setSearchId] = useState("")
   const [lastSearchedId, setLastSearchedId] = useState("")
   const [hasSearched, setHasSearched] = useState(false)
@@ -18,6 +19,17 @@ const SearchEmployee = () => {
   const navigate = useNavigate()
   const appDispatch = useAppDispatch()
   const { searchResult, loading, error } = useAppSelector((state) => state.emp)
+
+  useEffect(() => {
+    const q = searchParams.get('query') || searchParams.get('id') || searchParams.get('search')
+    if (q && !hasSearched) {
+      const trimmed = q.trim()
+      setSearchId(trimmed)
+      setLastSearchedId(trimmed)
+      setHasSearched(true)
+      appDispatch(fetchEmployeeById(trimmed))
+    }
+  }, [searchParams, appDispatch, hasSearched])
 
   const handleSearch = () => {
     if (searchId.trim() === "") return
@@ -66,7 +78,7 @@ const SearchEmployee = () => {
       </div>
 
       {
-        error && !hasSearched && (
+        error && !loading && (
           <div style={{ marginBottom: '24px' }}>
             <ErrorMessage message={error} onRetry={handleRetry} />
           </div>
@@ -74,7 +86,7 @@ const SearchEmployee = () => {
       }
 
       {
-        hasSearched && !searchResult && !loading && (
+        hasSearched && !searchResult && !loading && !error && (
           <div className="ems-empty-state">
             <div className="ems-empty-icon">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

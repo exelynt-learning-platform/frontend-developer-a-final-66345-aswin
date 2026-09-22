@@ -12,7 +12,7 @@ const Header = () => {
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         if (searchTerm.trim()) 
-            navigate(`/employees/search?query=${encodeURIComponent(searchTerm.trim())}`)
+            navigate(`/employees?search=${encodeURIComponent(searchTerm.trim())}`)
     }
 
     return (

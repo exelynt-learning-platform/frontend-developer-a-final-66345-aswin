@@ -3,13 +3,21 @@ import { getEmployees, getEmployeeById, createEmployee, updateEmployee, deleteEm
 import type { employee, emp_formData } from "../../types/employee"
 import { ERROR_MESSAGE } from "../../constants/CentralizedErrorMessage"
 
+const extractErrorMessage = (error: unknown, fallback: string): string => {
+    if (typeof error === 'object' && error !== null) {
+        const err = error as { response?: { data?: { message?: string } }; message?: string }
+        return err.response?.data?.message || err.message || fallback
+    }
+    return fallback
+}
+
 export const fetchEmployees = createAsyncThunk<employee[], void, { rejectValue: string }>('employees/fetchEmployees', async (_, { rejectWithValue }) => {
     try {
         const employees = await getEmployees()
         return employees
     }
-    catch {
-        return rejectWithValue(ERROR_MESSAGE.Employee.FETCH_ALL_FAILED)
+    catch (error) {
+        return rejectWithValue(extractErrorMessage(error, ERROR_MESSAGE.Employee.FETCH_ALL_FAILED))
     }
 })
 
@@ -18,8 +26,8 @@ export const fetchEmployeeById = createAsyncThunk<employee, string, { rejectValu
         const employeeId = await getEmployeeById(id)
         return employeeId
     }
-    catch {
-        return rejectWithValue(ERROR_MESSAGE.Employee.FETCH_BY_ID_FAILED)
+    catch (error) {
+        return rejectWithValue(extractErrorMessage(error, ERROR_MESSAGE.Employee.FETCH_BY_ID_FAILED))
     }
 })
 
@@ -28,8 +36,8 @@ export const createEmployees = createAsyncThunk<employee, emp_formData, { reject
         const addEmployee = await createEmployee(data)
         return addEmployee
     }
-    catch {
-        return rejectWithValue(ERROR_MESSAGE.Employee.CREATE_FAILED)
+    catch (error) {
+        return rejectWithValue(extractErrorMessage(error, ERROR_MESSAGE.Employee.CREATE_FAILED))
     }
 })
 
@@ -38,8 +46,8 @@ export const updateEmployees = createAsyncThunk<employee, { id: string, data: em
         const modifyEmployee = await updateEmployee(id, data)
         return modifyEmployee
     }
-    catch {
-        return rejectWithValue(ERROR_MESSAGE.Employee.UPDATE_FAILED)
+    catch (error) {
+        return rejectWithValue(extractErrorMessage(error, ERROR_MESSAGE.Employee.UPDATE_FAILED))
     }
 })
 
@@ -48,7 +56,7 @@ export const deleteEmployees = createAsyncThunk<string, string, { rejectValue: s
         await deleteEmployee(id)
         return id
     }
-    catch {
-        return rejectWithValue(ERROR_MESSAGE.Employee.DELETE_FAILED)
+    catch (error) {
+        return rejectWithValue(extractErrorMessage(error, ERROR_MESSAGE.Employee.DELETE_FAILED))
     }
 })

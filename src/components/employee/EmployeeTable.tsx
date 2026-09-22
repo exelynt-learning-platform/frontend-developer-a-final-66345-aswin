@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
 import { deleteEmployees, fetchEmployees } from '../../features/employees/employeeService'
 import { Loader } from '../common/Loader'
@@ -14,15 +14,25 @@ import { DEFAULT_PAGE_SIZE, getAvatarUrl, getCountryFlag } from '../../constants
 
 const EmployeeTable = () => {
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
     const appDispatch = useAppDispatch()
 
     const { employees, loading, error } = useAppSelector((state) => state.emp)
     const { country } = useAppSelector((state) => state.country)
 
-    const [searchTerm, setSearchTerm] = useState('')
+    const urlQuery = searchParams.get('search') || searchParams.get('query') || ''
+    const [searchTerm, setSearchTerm] = useState(urlQuery)
     const [selectedCountry, setSelectedCountry] = useState('All')
     const [selectedIds, setSelectedIds] = useState<string[]>([])
     const [currentPage, setCurrentPage] = useState(1)
+
+    useEffect(() => {
+        const q = searchParams.get('search') || searchParams.get('query')
+        if (q !== null && q !== searchTerm) {
+            setSearchTerm(q)
+            setCurrentPage(1)
+        }
+    }, [searchParams])
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
     const itemsPerPage = DEFAULT_PAGE_SIZE
 

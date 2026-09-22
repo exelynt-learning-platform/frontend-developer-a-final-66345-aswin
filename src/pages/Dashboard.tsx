@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../app/hooks'
 import { fetchEmployees } from '../features/employees/employeeService'
 import { fetchCountry } from '../features/countries/countryService'
@@ -207,17 +207,19 @@ const Dashboard = () => {
             <div className="ems-donut-visual">
               <svg width="140" height="140" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="38" fill="transparent" stroke="#f4f3ee" strokeWidth="11" />
-                {
-                  donutSlices.map((slice) => (
-                    <circle
-                      key={slice.name}
-                      cx="50" cy="50" r="38" fill="transparent"
-                      stroke={slice.color} strokeWidth="11"
-                      strokeDasharray={slice.strokeDasharray}
-                      strokeDashoffset={slice.strokeDashoffset}
-                    />
-                  ))
-                }
+                <g transform="rotate(-90 50 50)">
+                  {
+                    donutSlices.map((slice) => (
+                      <circle
+                        key={slice.name}
+                        cx="50" cy="50" r="38" fill="transparent"
+                        stroke={slice.color} strokeWidth="11"
+                        strokeDasharray={slice.strokeDasharray}
+                        strokeDashoffset={slice.strokeDashoffset}
+                      />
+                    ))
+                  }
+                </g>
               </svg>
               <div className="ems-donut-center">
                 <strong>{totalEmployeesCount}</strong>

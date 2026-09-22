@@ -192,4 +192,27 @@ describe('SearchEmployee', () => {
       type: 'employee/clearError',
     })
   })
+
+  it('should display error message and retry button when an active search fails', async () => {
+    const user = userEvent.setup()
+    mockEmployeeState = {
+      searchResult: null,
+      loading: false,
+      error: 'Network connection failed',
+    }
+
+    render(
+      <MemoryRouter>
+        <SearchEmployee />
+      </MemoryRouter>
+    )
+
+    const input = screen.getByPlaceholderText('search employee')
+    await user.type(input, '99')
+    await user.click(screen.getByRole('button', { name: /search/i }))
+
+    expect(screen.getByText('Network connection failed')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
+    expect(screen.queryByText(/No Employee Found/i)).not.toBeInTheDocument()
+  })
 })
